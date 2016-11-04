@@ -10,11 +10,11 @@ import Data.Functor.Foldable
 
 newtype T = T Int deriving (Eq, Show, Num, Enum, Integral, Real, Ord)
 
-data Tree a = Bin Int a a | Tip Int | Empty deriving (Eq, Ord, Functor)
+data Tree a = Bin a a | Tip | Empty deriving (Eq, Ord, Functor)
 
 type instance Base T = Tree
 
-instance Foldable T where
+instance Recursive T where
     project (T 0) = Empty
     project (T 1) = Tip
     project n = Bin low high

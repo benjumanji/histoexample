@@ -6,7 +6,7 @@
 module Main where
 
 import Control.Comonad.Cofree
-import Control.Lens
+import Control.Lens hiding ((:<))
 import Control.Monad (guard)
 import Data.Functor.Foldable
 import Data.Maybe (isJust)
@@ -41,13 +41,39 @@ data Nat a = S a | Z deriving (Eq, Show, Functor)
 
 type instance Base I = Nat
 
-instance Foldable I where
+instance Recursive I where
     project (I 0) = Z
     project x = S $ pred x
 
+-- histo :: Recursive t => (Base t (Cofree (Base t) a) -> a) -> t -> a
+
+-- distHisto :: Nat (Cofree Nat Double) -> Cofree Nat (Nat Double)
+-- distHisto = Cofree.unfold (\as -> (extract <$> as, Cofree.unwrap <$> as))
+
+-- gcata :: (Recursive t, Comonad w)
+--       => (forall b. Base t (w b) -> w (Base t b)) -- ^ a distributive law
+--       -> (Base t (w a) -> a)                      -- ^ a (Base t)-w-algebra
+--       -> t                                        -- ^ fixed point
+--       -> a
+--
+--  Lets assume a capacity of 3
+--  gcata k g = g . extract . c
+--    where c = k . fmap (duplicate . fmap g . c) . project
+--
+--  gcata k g (I 3)
+--  g . extract . c $ I 3
+--  g . extract $ k . fmap (duplicate . fmap g . c) . project $ I 3
+--  g . extract $ k . fmap (duplicate . fmap g . c) $ S (I 2)
+--  g . extract $ k $ S (duplicate . fmap g . c $ I 2)
+--  g . extract $ k $ S (duplicate . fmap g . k . fmap (duplicate . fmap g . c) . project $ I 2)
+--  g . extract $ k $ S (duplicate . fmap g . k . fmap (duplicate . fmap g . c) $ S (I 1))
+--  g . extract $ k $ S (duplicate . fmap g . k $ S (duplicate . fmap g . c $ I 1))
+--  g . extract $ k $ S (duplicate . fmap g . k $ S (duplicate . fmap g . k $ S (duplicate . fmap g . k . fmap (duplicate . fmap g . c) $ Z)))
+--  g . extract $ k $ S (duplicate . fmap g . k $ S (duplicate . fmap g . k $ S (duplicate . fmap g . k $ Z)))
+
 knapsack :: [(I, Double)] -> I -> Double
 knapsack weights = histo f
-   where
+  where
     f :: Nat (Cofree Nat Double) -> Double
     f x = case x of
               Z   -> 0
